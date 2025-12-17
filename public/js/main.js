@@ -10,7 +10,7 @@ import { renderLevel } from "./ui/levelCard.js";
 import { celebrate } from "./ui/animations.js";
 
 onAuthStateChanged(auth, async user => {
-  if (!user) location.href = "index.html";
+  if (!user) return location.href = "index.html";
 
   const levels = await fetchLevels();
   const progress = await getUserProgress(user.uid);
@@ -19,17 +19,21 @@ onAuthStateChanged(auth, async user => {
   const userSnap = await getDoc(userRef);
   const userData = userSnap.data();
 
-  document.getElementById("userInfo").textContent =
-    userData.displayName;
-
-  document.getElementById("streak").textContent =
-    `🔥 ${userData.currentStreak}`;
+  document.getElementById("userInfo").textContent = userData.displayName;
+  document.getElementById("streak").textContent = `🔥 ${userData.currentStreak}`;
 
   const container = document.getElementById("levelsContainer");
+  container.innerHTML = ""; // clear container to prevent duplicates
+
+  // Find the first incomplete level
+  const nextIndex = progress.length;
 
   levels.forEach((level, index) => {
     const completed = progress.includes(level.order);
-    const unlocked = completed || index === progress.length;
+    const unlocked = completed || index === nextIndex;
+
+    // Hide all upcoming levels after the first unlocked one
+    if (index > nextIndex) return;
 
     const card = renderLevel(
       level,
@@ -37,13 +41,20 @@ onAuthStateChanged(auth, async user => {
       completed,
       async () => {
         await completeLevel(user.uid, level.order);
-        await updateDoc(userRef, {
-          completedLevelsCount: increment(1)
-        });
+        await updateDoc(userRef, { completedLevelsCount: increment(1) });
         await updateStreak(user.uid, userData.lastCompletionDate);
         await checkBadges(user.uid, userData.completedLevelsCount + 1);
+
         celebrate();
-        location.reload();
+
+        // Navigate to leaderboard after completing last level
+        if (nextIndex + 1 >= levels.length) {
+          location.href = "leaderboard.html";
+        } else {
+          // Only reload levels, don't refresh whole page
+          container.innerHTML = "";
+          onAuthStateChanged(auth, async () => {}); // or better: call a function to re-render
+        }
       }
     );
 
