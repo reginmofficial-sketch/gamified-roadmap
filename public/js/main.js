@@ -1,63 +1,68 @@
-import { auth, db } from "./config/firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-import { doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { gameService } from "./services/gameService.js";
+import { uiManager } from "./ui/uiManager.js";
+import { logger } from "./core/logger.js";
 
-import { fetchLevels } from "./core/levels.js";
-import { getUserProgress, completeLevel } from "./core/progress.js";
-import { updateStreak } from "./core/streak.js";
-import { checkBadges } from "./core/badges.js";
-import { renderLevel } from "./ui/levelCard.js";
-import { celebrate } from "./ui/animations.js";
+/**
+ * Main Controller
+ */
+async function initApp() {
+  logger.info("Application starting...");
 
-onAuthStateChanged(auth, async user => {
-  if (!user) return location.href = "index.html";
+  gameService.initAuth(async (state) => {
+    if (state.error) {
+      logger.error("State error:", state.error);
+      uiManager.showError("Failed to load data: " + state.error.message);
+      return;
+    }
 
-  const levels = await fetchLevels();
-  const progress = await getUserProgress(user.uid);
+    const { user, userData, levels } = state;
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-  const userData = userSnap.data();
-
-  document.getElementById("userInfo").textContent = userData.displayName;
-  document.getElementById("streak").textContent = `🔥 ${userData.currentStreak}`;
-
-  const container = document.getElementById("levelsContainer");
-  container.innerHTML = ""; // clear container to prevent duplicates
-
-  // Find the first incomplete level
-  const nextIndex = progress.length;
-
-  levels.forEach((level, index) => {
-    const completed = progress.includes(level.order);
-    const unlocked = completed || index === nextIndex;
-
-    // Hide all upcoming levels after the first unlocked one
-    if (index > nextIndex) return;
-
-    const card = renderLevel(
-      level,
-      unlocked,
-      completed,
-      async () => {
-        await completeLevel(user.uid, level.order);
-        await updateDoc(userRef, { completedLevelsCount: increment(1) });
-        await updateStreak(user.uid, userData.lastCompletionDate);
-        await checkBadges(user.uid, userData.completedLevelsCount + 1);
-
-        celebrate();
-
-        // Navigate to leaderboard after completing last level
-        if (nextIndex + 1 >= levels.length) {
-          location.href = "leaderboard.html";
-        } else {
-          // Only reload levels, don't refresh whole page
-          container.innerHTML = "";
-          onAuthStateChanged(auth, async () => {}); // or better: call a function to re-render
-        }
+    if (!user) {
+      // Redirect if not logged in
+      // Check if we are already on index.html to avoid loop
+      if (!window.location.pathname.endsWith("index.html") && window.location.pathname !== "/") {
+        logger.info("Redirecting to login...");
+        window.location.href = "index.html";
       }
-    );
+      return;
+    }
 
-    container.appendChild(card);
+    // We are logged in
+    if (userData && levels && levels.length > 0) {
+      // Update Header
+      uiManager.updateHeader(user, userData);
+
+      // Render Roadmap
+      render(levels, userData.completedLevelIds);
+    } else {
+      logger.warn("Data missing or empty.");
+      uiManager.updateHeader(user, userData || { displayName: "Explorer" });
+      uiManager.showError("No roadmap levels found.");
+    }
   });
-});
+}
+
+function render(levels, completedLevelIds) {
+  uiManager.renderRoadmap(levels, completedLevelIds, async (level) => {
+    try {
+      await gameService.completeLevel(level);
+      uiManager.showCelebration();
+
+      // Refresh Data to re-render
+      const user = gameService.currentUser;
+      const newData = await gameService.getUserData(user.uid);
+
+      // Optimistic update or full re-render
+      uiManager.updateHeader(user, newData);
+      render(levels, newData.completedLevelIds);
+
+      logger.info("Level completion flow finished.");
+    } catch (error) {
+      logger.error("Error in level completion flow", error);
+      alert("Something went wrong completing the level. Check console.");
+    }
+  });
+}
+
+// Start
+initApp();

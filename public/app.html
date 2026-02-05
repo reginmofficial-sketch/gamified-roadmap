@@ -1,25 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Roadmap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roadmap | MindfulPath</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./css/style.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 min-h-screen">
 
-  <header class="bg-white shadow p-4 flex justify-between">
-    <div id="userInfo"></div>
-    <div id="streak"></div>
-  </header>
+<body class="min-h-screen text-slate-200">
 
-  <main class="p-4 max-w-2xl mx-auto">
-    <div id="levelsContainer" class="space-y-4"></div>
-  </main>
+  <div class="flex flex-col md:flex-row min-h-screen max-w-7xl mx-auto">
 
+    <!-- Mobile Toggle Button -->
+    <button id="mobileMenuBtn"
+      class="fixed top-4 right-4 z-50 md:hidden p-3 bg-slate-800/90 backdrop-blur rounded-lg text-white border border-slate-700 shadow-lg">
+      ☰
+    </button>
+
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed inset-y-0 left-0 z-40 w-80 transform -translate-x-full md:translate-x-0 md:static p-6 flex flex-col gap-6 bg-slate-900/95 md:bg-transparent transition-transform duration-300 ease-in-out overflow-y-auto">
+      <!-- Branding -->
+      <div class="p-4 glass-card rounded-xl">
+        <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-emerald-500">
+          MindfulPath
+        </h1>
+        <p class="text-sm text-gray-400 mt-1">Journey to clarity.</p>
+      </div>
+
+      <!-- User Info Card -->
+      <div id="userInfo" class="glass-card p-4 rounded-xl flex flex-col gap-2">
+        <!-- Populated by JS -->
+        <div class="animate-pulse h-12 bg-gray-700/50 rounded-lg"></div>
+      </div>
+
+      <!-- Streak Card -->
+      <!-- Badges Card -->
+      <div id="badgesContainer" class="glass-card p-4 rounded-xl">
+        <h3 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Recent Badges</h3>
+        <div class="flex flex-wrap gap-2 justify-center" id="badgesList">
+          <span class="text-xs text-gray-600">Locked</span>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 glass-card p-4 rounded-xl space-y-2">
+        <a href="#" class="block p-3 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+          🗺️ Roadmap
+        </a>
+        <a href="leaderboard.html" class="block p-3 rounded-lg hover:bg-gray-700/50 text-gray-400 transition-colors">
+          🏆 Zen Masters
+        </a>
+        <button id="shareBtn"
+          class="w-full text-left p-3 rounded-lg hover:bg-indigo-500/20 text-indigo-300 transition-colors flex items-center gap-2">
+          📸 Share Zen Card
+        </button>
+        <button id="muteBtn"
+          class="w-full text-left p-3 rounded-lg hover:bg-gray-700/50 text-gray-400 transition-colors flex items-center justify-between">
+          <span>🔊 Sound On</span>
+        </button>
+        <button id="logoutBtn" onclick="import('./js/services/gameService.js').then(m => m.gameService.logout())"
+          class="w-full text-left p-3 rounded-lg hover:bg-red-900/20 text-red-400 transition-colors mt-auto">
+          🚪 Logout
+        </button>
+        <button
+          onclick="if(confirm('Are you sure you want to reset your progress? This cannot be undone.')) import('./js/services/gameService.js').then(m => m.gameService.resetAccount().then(() => window.location.reload()))"
+          class="w-full text-left p-2 rounded-lg hover:bg-red-900/40 text-red-500 text-xs transition-colors opacity-70 hover:opacity-100 mt-2">
+          ⚠ Reset Progress
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 md:p-6 overflow-y-auto">
+      <!-- Header for Mobile -->
+      <div class="md:hidden mb-6 flex justify-between items-center glass-card p-4 rounded-xl">
+        <h2 class="font-bold text-lg">Roadmap</h2>
+        <!-- Mobile menu toggle could go here -->
+      </div>
+
+      <!-- Roadmap Container -->
+      <div id="levelsContainer" class="max-w-3xl mx-auto pb-20">
+        <!-- Loading State -->
+        <div class="glass-card p-8 rounded-xl text-center">
+          <div class="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4">
+          </div>
+          <p class="text-gray-400">Loading your journey...</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Hidden Sharing Template -->
+  <div id="zenCardTemplate"
+    class="fixed -left-[9999px] w-[600px] h-[315px] bg-[#0f172a] text-white p-8 flex items-center justify-between overflow-hidden">
+    <!-- Background Gradients -->
+    <div class="absolute top-0 left-0 w-full h-full opacity-50"
+      style="background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.4) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.4) 0%, transparent 50%);">
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 flex-1">
+      <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-emerald-500 mb-2">
+        MindfulPath</h1>
+      <p class="text-gray-400 mb-6 font-light">Journey to clarity.</p>
+
+      <div class="flex items-center gap-6">
+        <!-- Avatar -->
+        <div id="cardAvatar" class="text-6xl">🧘</div>
+
+        <!-- Stats -->
+        <div>
+          <div class="font-bold text-2xl" id="cardName">User</div>
+          <div class="text-indigo-300 font-mono mt-1">Lvl <span id="cardLvl">0</span> • <span id="cardStreak">0</span>
+            Day Streak</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side Badge -->
+    <div class="relative z-10">
+      <div
+        class="w-24 h-24 rounded-full border-4 border-yellow-500/30 flex items-center justify-center bg-yellow-500/10 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+        <span class="text-4xl">🏆</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script type="module" src="./js/main.js"></script>
-  <div id="leaderboard"></div>
-
-<script type="module" src="./js/core/leaderboardUI.js"></script>
+  <script type="module" src="./js/core/leaderboardUI.js"></script>
 
 </body>
+
 </html>

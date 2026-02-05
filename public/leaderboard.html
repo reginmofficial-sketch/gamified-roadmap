@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaderboard | MindfulPath</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="min-h-screen text-slate-200">
+
+    <div class="flex flex-col md:flex-row min-h-screen max-w-7xl mx-auto">
+
+        <!-- Mobile Toggle Button -->
+        <button id="mobileMenuBtn"
+            class="fixed top-4 right-4 z-50 md:hidden p-3 bg-slate-800/90 backdrop-blur rounded-lg text-white border border-slate-700 shadow-lg">
+            ☰
+        </button>
+
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="fixed inset-y-0 left-0 z-40 w-80 transform -translate-x-full md:translate-x-0 md:static p-6 flex flex-col gap-6 bg-slate-900/95 md:bg-transparent transition-transform duration-300 ease-in-out overflow-y-auto">
+            <!-- Branding -->
+            <div class="p-4 glass-card rounded-xl">
+                <h1
+                    class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-emerald-500">
+                    MindfulPath
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Journey to clarity.</p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 glass-card p-4 rounded-xl space-y-2">
+                <a href="app.html" class="block p-3 rounded-lg hover:bg-gray-700/50 text-gray-400 transition-colors">
+                    🗺️ Roadmap
+                </a>
+                <a href="#" class="block p-3 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    🏆 Zen Masters
+                </a>
+                <button id="muteBtn"
+                    class="w-full text-left p-3 rounded-lg hover:bg-gray-700/50 text-gray-400 transition-colors flex items-center justify-between">
+                    <span>🔊 Sound On</span>
+                </button>
+                <button id="logoutBtn"
+                    onclick="import('./js/services/gameService.js').then(m => m.gameService.logout().then(() => window.location.href='index.html'))"
+                    class="w-full text-left p-3 rounded-lg hover:bg-red-900/20 text-red-400 transition-colors mt-auto">
+                    🚪 Logout
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-6 overflow-y-auto">
+            <h2 class="text-3xl font-bold mb-6">Leaderboard</h2>
+
+            <!-- Leaderboard Container -->
+            <div id="leaderboard" class="glass-panel p-6 rounded-xl space-y-2">
+                <div class="animate-pulse h-8 bg-gray-700/50 rounded w-full mb-2"></div>
+                <div class="animate-pulse h-8 bg-gray-700/50 rounded w-full mb-2"></div>
+                <div class="animate-pulse h-8 bg-gray-700/50 rounded w-full mb-2"></div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="./js/core/leaderboardUI.js"></script>
+
+</body>
+
+</html>

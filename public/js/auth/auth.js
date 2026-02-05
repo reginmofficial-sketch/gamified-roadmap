@@ -13,15 +13,15 @@ const googleBtn = document.getElementById("googleLogin");
 
 if (emailBtn) {
   emailBtn.onclick = async () => {
-    const email = email.value;
-    const password = password.value;
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
 
     try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
+      const res = await signInWithEmailAndPassword(auth, emailVal, passwordVal);
       await ensureUser(res.user);
       location.href = "app.html";
     } catch {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
+      const res = await createUserWithEmailAndPassword(auth, emailVal, passwordVal);
       await ensureUser(res.user);
       location.href = "app.html";
     }
